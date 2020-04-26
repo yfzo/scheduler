@@ -10,3 +10,16 @@ export function getAppointmentsForDay(state, day) {
 
   return appointmentsForDay;
 }
+
+export function getInterview(state, interview) {
+  if (interview) {
+    const interviewer = state.interviewers[interview.interviewer.toString()];
+
+    return ({
+      ...interview,
+      interviewer
+    })
+  }
+
+  return null;
+}
