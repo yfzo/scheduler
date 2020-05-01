@@ -6,14 +6,18 @@ import "components/Application.scss";
 import DayList from "./DayList";
 import Appointment from "./Appointment";
 
-import { getAppointmentsForDay, getInterview, getInterviewersForDay } from "../helpers/selectors";
+import {
+  getAppointmentsForDay,
+  getInterview,
+  getInterviewersForDay,
+} from "../helpers/selectors";
 
 export default function Application(props) {
   const [state, setState] = useState({
     day: "Monday",
     days: [],
     appointments: {},
-    interviewers: {}
+    interviewers: {},
   });
 
   const setDay = (day) => setState({ ...state, day });
@@ -22,7 +26,7 @@ export default function Application(props) {
     Promise.all([
       Promise.resolve(axios.get("http://localhost:8001/api/days")),
       Promise.resolve(axios.get("http://localhost:8001/api/appointments")),
-      Promise.resolve(axios.get("http://localhost:8001/api/interviewers"))
+      Promise.resolve(axios.get("http://localhost:8001/api/interviewers")),
     ]).then((all) => {
       const [days, appointments, interviewers] = all;
 
@@ -30,13 +34,34 @@ export default function Application(props) {
         ...prev,
         days: days.data,
         appointments: appointments.data,
-        interviewers: interviewers.data
+        interviewers: interviewers.data,
       }));
     });
   }, []);
 
   const appointments = getAppointmentsForDay(state, state.day);
   const interviewers = getInterviewersForDay(state, state.day);
+
+  function bookInterview(id, interview) {
+    const appointment = {
+      ...state.appointments[id],
+      interview: { ...interview },
+    };
+
+    const appointments = {
+      ...state.appointments,
+      [id]: appointment,
+    };
+
+    return axios
+      .put(`http://localhost:8001/api/appointments/${id}`, appointment)
+      .then(() =>
+        setState({
+          ...state,
+          appointments,
+        })
+      );
+  }
 
   const schedule = appointments.map((appointment) => {
     const interview = getInterview(state, appointment.interview);
@@ -48,9 +73,10 @@ export default function Application(props) {
         time={appointments.time}
         interview={interview}
         interviewers={interviewers}
+        bookInterview={bookInterview}
       />
     );
-  })
+  });
 
   return (
     <main className="layout">
