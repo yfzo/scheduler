@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import useVisualMode from "../../hooks/useVisualMode";
 
 import Header from "./Header";
@@ -22,7 +22,7 @@ export default function Appointment(props) {
     props.interview ? SHOW : EMPTY
   );
 
-  const message = "Are you sure you would like to delete?";
+  const [message, setMessage] = useState("");
 
   function onAdd() {
     transition(CREATE);
@@ -34,16 +34,22 @@ export default function Appointment(props) {
       interviewer: interviewer,
     };
 
+    setMessage("Saving");
+
     transition(SAVING);
     props.bookInterview(props.id, interview).then(() => transition(SHOW));
   }
 
   function onConfirm() {
+    setMessage("Deleting");
+
     transition(SAVING);
     props.cancelInterview(props.id).then(() => transition(EMPTY));
   }
 
   function onDelete() {
+    setMessage("Are you sure you would like to delete?");
+    
     transition(CONFIRM);
   }
 
@@ -66,7 +72,7 @@ export default function Appointment(props) {
       {mode === CREATE && (
         <Form interviewers={props.interviewers} onCancel={back} onSave={save} />
       )}
-      {mode === SAVING && <Status />}
+      {mode === SAVING && <Status message={message} />}
       {mode === CONFIRM && (
         <Confirm message={message} onCancel={back} onConfirm={onConfirm} />
       )}
