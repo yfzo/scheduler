@@ -27,9 +27,26 @@ export default function useApplicationData() {
         };
       }
       case SET_INTERVIEW: {
+        const days = state.days.map(day => {
+          if (day.appointments.includes(action.id)) {
+            let spots = 5;
+
+            for (let appointment of day.appointments) {
+              if (action.value[appointment].interview) {
+                spots--;
+              }
+            }
+
+            return {...day, spots}
+          }
+
+          return day;
+        })
+
         return {
           ...state,
           appointments: action.value,
+          days
         };
       }
       default:
@@ -58,6 +75,16 @@ export default function useApplicationData() {
         },
       });
     });
+
+    const socket = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
+
+    socket.onopen = (event) => socket.send("ping");
+    socket.onmessage = (event) =>
+      console.log(`Message received: ${event.data}`);
+
+    return function cleanup() {
+      socket.close();
+    };
   }, []);
 
   function bookInterview(id, interview) {
@@ -77,6 +104,7 @@ export default function useApplicationData() {
         dispatch({
           type: SET_INTERVIEW,
           value: appointments,
+          id: id,
         });
       });
   }
@@ -98,6 +126,7 @@ export default function useApplicationData() {
         dispatch({
           type: SET_INTERVIEW,
           value: appointments,
+          id: id,
         });
       });
   }
