@@ -27,26 +27,35 @@ export default function useApplicationData() {
         };
       }
       case SET_INTERVIEW: {
-        const days = state.days.map(day => {
+        // Must refer to state.appointments here since it cannot be done in useEffect ATM
+        const appointments = {
+          ...state.appointments,
+          [action.id]: {
+            ...state.appointments[action.id],
+            interview: action.value[action.id].interview,
+          }
+        };
+
+        const days = state.days.map((day) => {
           if (day.appointments.includes(action.id)) {
             let spots = 5;
 
             for (let appointment of day.appointments) {
-              if (action.value[appointment].interview) {
+              if (appointments[appointment.toString()].interview) {
                 spots--;
               }
             }
 
-            return {...day, spots}
+            return { ...day, spots };
           }
 
           return day;
-        })
+        });
 
         return {
           ...state,
-          appointments: action.value,
-          days
+          appointments,
+          days,
         };
       }
       default:
@@ -59,30 +68,50 @@ export default function useApplicationData() {
   const setDay = (day) => dispatch({ type: SET_DAY, value: day });
 
   useEffect(() => {
-    Promise.all([
-      Promise.resolve(axios.get("http://localhost:8001/api/days")),
-      Promise.resolve(axios.get("http://localhost:8001/api/appointments")),
-      Promise.resolve(axios.get("http://localhost:8001/api/interviewers")),
-    ]).then((all) => {
-      const [days, appointments, interviewers] = all;
-
-      dispatch({
-        type: SET_APPLICATION_DATA,
-        value: {
-          days: days.data,
-          appointments: appointments.data,
-          interviewers: interviewers.data,
-        },
-      });
-    });
-
     const socket = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
-
     socket.onopen = (event) => socket.send("ping");
-    socket.onmessage = (event) =>
-      console.log(`Message received: ${event.data}`);
 
-    return function cleanup() {
+    Promise.all([
+      Promise.resolve(
+        axios.get("http://localhost:8001/api/days")
+      ),
+      Promise.resolve(
+        axios.get("http://localhost:8001/api/appointments")
+      ),
+      Promise.resolve(
+        axios.get("http://localhost:8001/api/interviewers")
+      ),
+    ])
+      .then((all) => {
+        const [days, appointments, interviewers] = all;
+
+        dispatch({
+          type: SET_APPLICATION_DATA,
+          value: {
+            days: days.data,
+            appointments: appointments.data,
+            interviewers: interviewers.data,
+          },
+        });
+      })
+
+    socket.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+
+      if (msg.type === SET_INTERVIEW) {
+        const appointment = {
+          [msg.id]: { interview: msg.interview },
+        };
+
+        dispatch({
+          type: SET_INTERVIEW,
+          value: appointment,
+          id: msg.id,
+        });
+      }
+    };
+
+    return () => {
       socket.close();
     };
   }, []);

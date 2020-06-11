@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import useVisualMode from "../../hooks/useVisualMode";
 
 import Header from "./Header";
@@ -56,7 +56,8 @@ export default function Appointment(props) {
 
     transition(DELETING, true);
 
-    props.cancelInterview(props.id).then(() => transition(EMPTY))
+    props.cancelInterview(props.id)
+    .then(() => transition(EMPTY))
     .catch(error => {
       setMessage("There was an error while deleting");
       transition(ERROR_DELETE, true);
@@ -73,11 +74,21 @@ export default function Appointment(props) {
     transition(EDIT);
   }
 
+  // Changes mode for interview changes from other clients
+  useEffect(() => {
+    if (props.interview && mode === EMPTY) {
+      transition(SHOW);
+    }
+    if (props.interview === null && mode === SHOW) {
+      transition(EMPTY);
+    }
+  }, [props.interview, transition, mode]);
+
   return (
     <article className="appointment">
       <Header time={props.time} />
       {mode === EMPTY && <Empty onAdd={onAdd} />}
-      {mode === SHOW && (
+      {mode === SHOW && props.interview && (
         <Show
           student={props.interview.student}
           interviewer={props.interview.interviewer}
