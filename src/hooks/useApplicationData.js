@@ -1,4 +1,4 @@
-import { useReducer, useEffect } from "react";
+import { useReducer, useEffect, useRef } from "react";
 import axios from "axios";
 
 const SET_DAY = "SET_DAY";
@@ -27,21 +27,12 @@ export default function useApplicationData() {
         };
       }
       case SET_INTERVIEW: {
-        // Must refer to state.appointments here since it cannot be done in useEffect ATM
-        const appointments = {
-          ...state.appointments,
-          [action.id]: {
-            ...state.appointments[action.id],
-            interview: action.value[action.id].interview,
-          }
-        };
-
         const days = state.days.map((day) => {
           if (day.appointments.includes(action.id)) {
             let spots = 5;
 
             for (let appointment of day.appointments) {
-              if (appointments[appointment.toString()].interview) {
+              if (action.value[appointment.toString()].interview) {
                 spots--;
               }
             }
@@ -54,7 +45,7 @@ export default function useApplicationData() {
 
         return {
           ...state,
-          appointments,
+          appointments: action.value,
           days,
         };
       }
@@ -66,10 +57,11 @@ export default function useApplicationData() {
   }
 
   const setDay = (day) => dispatch({ type: SET_DAY, value: day });
+  const socket = useRef(null);
 
   useEffect(() => {
-    const socket = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
-    socket.onopen = (event) => socket.send("ping");
+    socket.current = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
+    socket.current.onopen = () => socket.current.send("ping");
 
     Promise.all([
       Promise.resolve(
@@ -95,26 +87,36 @@ export default function useApplicationData() {
         });
       })
 
-    socket.onmessage = (event) => {
+    return () => {
+      socket.current.close();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!socket.current) return;
+
+    socket.current.onmessage = (event) => {
       const msg = JSON.parse(event.data);
 
       if (msg.type === SET_INTERVIEW) {
         const appointment = {
-          [msg.id]: { interview: msg.interview },
-        };
+          ...state.appointments[msg.id],
+          interview: msg.interview
+        }
+
+        const appointments = {
+          ...state.appointments,
+          [msg.id]: appointment
+        }
 
         dispatch({
           type: SET_INTERVIEW,
-          value: appointment,
+          value: appointments,
           id: msg.id,
         });
       }
     };
-
-    return () => {
-      socket.close();
-    };
-  }, []);
+  })
 
   function bookInterview(id, interview) {
     const appointment = {
