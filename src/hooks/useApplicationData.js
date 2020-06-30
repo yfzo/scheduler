@@ -19,13 +19,13 @@ export default function useApplicationData() {
 
     Promise.all([
       Promise.resolve(
-        axios.get("http://localhost:8001/api/days")
+        axios.get("/api/days")
       ),
       Promise.resolve(
-        axios.get("http://localhost:8001/api/appointments")
+        axios.get("/api/appointments")
       ),
       Promise.resolve(
-        axios.get("http://localhost:8001/api/interviewers")
+        axios.get("/api/interviewers")
       ),
     ])
       .then((all) => {
