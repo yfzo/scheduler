@@ -42,10 +42,13 @@
     "@testing-library/react": "^8.0.7",
     "@testing-library/react-hooks": "^3.2.1",
     "babel-loader": "^8.0.5",
+    "http-proxy-middleware": "^1.0.4",
     "node-sass": "^4.14.1",
     "prop-types": "^15.7.2",
     "react-test-renderer": "^16.9.0"
   },
+  "proxy": "http://[::1]:8001",
+  "secure": false,
   "jest": {
     "watchPathIgnorePatterns": [
       "<rootDir>/node_modules/",
@@ -55,6 +58,5 @@
       "src/**/*.js",
       "!src/index.js"
     ]
-  },
-  "proxy": "http://localhost:8001/api"
+  }
 }

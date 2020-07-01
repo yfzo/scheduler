@@ -84,7 +84,7 @@ export default function useApplicationData() {
     };
 
     return axios
-      .put(`http://localhost:8001/api/appointments/${id}`, appointment)
+      .put(`/api/appointments/${id}`, appointment)
       .then(() => {
         dispatch({
           type: SET_INTERVIEW,
@@ -106,7 +106,7 @@ export default function useApplicationData() {
     };
 
     return axios
-      .delete(`http://localhost:8001/api/appointments/${id}`)
+      .delete(`/api/appointments/${id}`)
       .then(() => {
         dispatch({
           type: SET_INTERVIEW,
