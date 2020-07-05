@@ -4,6 +4,10 @@
 
 A simple interview scheduling app using React and Node. See live [here](https://relaxed-williams-fdfee9.netlify.app/).
 
+### Creating an interview
+
+!["Screenshot of appointment form"](https://github.com/yfzo/scheduler/blob/master/docs/appointment-form.png?raw=true)
+
 ## Getting Started
 
 1. Fork and clone this repository, as well as the [scheduler-api](https://github.com/lighthouse-labs/scheduler-api).
