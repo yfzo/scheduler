@@ -2,7 +2,7 @@
 
 ## Overview
 
-A simple interview scheduling app using React and Node. See live [here](https://relaxed-williams-fdfee9.netlify.app/).
+A simple interview scheduling app using React and Node. See live [here](https://relaxed-williams-fdfee9.netlify.app/) (please allow a few seconds for the server to wake up if schedule appears blank).
 
 ### Creating an interview
 
